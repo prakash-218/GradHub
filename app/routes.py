@@ -1031,7 +1031,7 @@ def chat(user_id):
     # Check if current user is following the recipient
     if not current_user.is_following(other_user):
         flash('You can only message users you follow.', 'warning')
-        return redirect(url_for('main.messages'))
+        return redirect(url_for('main.chat'))
     
     if request.method == 'POST':
         content = request.form.get('content')
@@ -1105,6 +1105,7 @@ def unpin_conversation(user_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
 
 @main.after_request
 def add_csrf_token(response):

@@ -87,11 +87,13 @@ class User(UserMixin, db.Model):
         if not self.is_following(user):
             f = Follow(follower=self, followed=user)
             db.session.add(f)
+            db.session.commit()
 
     def unfollow(self, user):
         f = self.following.filter_by(followed_id=user.id).first()
         if f:
             db.session.delete(f)
+            db.session.commit()
 
     def is_following(self, user):
         return self.following.filter_by(followed_id=user.id).first() is not None
@@ -107,8 +109,17 @@ class User(UserMixin, db.Model):
     def accept_follow_request(self, user):
         fr = self.follow_requests_received.filter_by(requester_id=user.id).first()
         if fr:
-            self.follow(user)
-            db.session.delete(fr)
+            try:
+                # Create the follow relationship
+                f = Follow(follower=user, followed=self)
+                db.session.add(f)
+                # Delete the follow request
+                db.session.delete(fr)
+                # Commit both changes
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                raise e
 
     def reject_follow_request(self, user):
         fr = self.follow_requests_received.filter_by(requester_id=user.id).first()
@@ -359,9 +370,13 @@ class Application(db.Model):
 # New models for follow functionality
 class Follow(db.Model):
     __tablename__ = 'follows'
-    follower_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
-    followed_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    follower_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    __table_args__ = (
+        db.UniqueConstraint('follower_id', 'followed_id', name='unique_follow_constraint'),
+    )
 
 class FollowRequest(db.Model):
     __tablename__ = 'follow_requests'
