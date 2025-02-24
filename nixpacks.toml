@@ -3,4 +3,4 @@
 builder = "nixpacks"
 
 [start]
-cmd = "flask db upgrade && gunicorn 'app:create_app()'"
+cmd = "gunicorn 'app:create_app()'"
