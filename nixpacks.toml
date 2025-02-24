@@ -1,4 +1,6 @@
 # nixpacks.toml
+[build]
+builder = "nixpacks"
 
 [start]
-cmd = "gunicorn run:app"
+cmd = "flask db upgrade && gunicorn 'app:create_app()'"
