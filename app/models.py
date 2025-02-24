@@ -159,6 +159,7 @@ class Poll(db.Model):
     end_date = db.Column(db.DateTime)
     poll_type = db.Column(db.String(50))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    course = db.Column(db.String(256), nullable=True)
     
     # Add upvotes relationship
     upvotes = db.relationship('PollVote', backref='poll', lazy='dynamic', cascade='all, delete-orphan')
