@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Archived Polls</h1>
+        <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">Back to Active Polls</a>
+    </div>
+
+    <div class="row">
+        {% for poll in polls.items %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-secondary me-2">{{ poll.upvote_count }} upvotes</span>
+                        <h5 class="card-title mb-0">{{ poll.title }}</h5>
+                    </div>
+                    <p class="card-text">{{ poll.description[:200] }}{% if poll.description|length > 200 %}...{% endif %}</p>
+                    <p class="text-muted">
+                        By {{ poll.author.username }} on {{ poll.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        {% if poll.end_date %}
+                        <br>Ended on: {{ poll.end_date.strftime('%Y-%m-%d %H:%M') }}
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('main.view_poll', poll_id=poll.id) }}" class="btn btn-primary">View Results</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if polls.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.archived_polls', page=polls.prev_num) }}">Previous</a>
+            </li>
+            {% endif %}
+            {% if polls.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.archived_polls', page=polls.next_num) }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %} 

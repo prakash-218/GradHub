@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1>Share Your Admission Result</h1>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.university.label(class="form-label") }}
+                        {{ form.university(class="form-control") }}
+                        {% if form.university.errors %}
+                            {% for error in form.university.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        {{ form.program.label(class="form-label") }}
+                        {{ form.program(class="form-control") }}
+                        {% if form.program.errors %}
+                            {% for error in form.program.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form.decision.label(class="form-label") }}
+                        {{ form.decision(class="form-select") }}
+                        {% if form.decision.errors %}
+                            {% for error in form.decision.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        {{ form.degree_type.label(class="form-label") }}
+                        {{ form.degree_type(class="form-select") }}
+                        {% if form.degree_type.errors %}
+                            {% for error in form.degree_type.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        {{ form.term.label(class="form-label") }}
+                        {{ form.term(class="form-control") }}
+                        {% if form.term.errors %}
+                            {% for error in form.term.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.notification_date.label(class="form-label") }}
+                    {{ form.notification_date(class="form-control") }}
+                    {% if form.notification_date.errors %}
+                        {% for error in form.notification_date.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        {{ form.gpa.label(class="form-label") }}
+                        {{ form.gpa(class="form-control") }}
+                        {% if form.gpa.errors %}
+                            {% for error in form.gpa.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        {{ form.gre_verbal.label(class="form-label") }}
+                        {{ form.gre_verbal(class="form-control") }}
+                        {% if form.gre_verbal.errors %}
+                            {% for error in form.gre_verbal.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        {{ form.gre_quant.label(class="form-label") }}
+                        {{ form.gre_quant(class="form-control") }}
+                        {% if form.gre_quant.errors %}
+                            {% for error in form.gre_quant.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-3 mb-3">
+                        {{ form.gre_awa.label(class="form-label") }}
+                        {{ form.gre_awa(class="form-control") }}
+                        {% if form.gre_awa.errors %}
+                            {% for error in form.gre_awa.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.comments.label(class="form-label") }}
+                    {{ form.comments(class="form-control", rows=3) }}
+                    {% if form.comments.errors %}
+                        {% for error in form.comments.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                {{ form.submit(class="btn btn-primary") }}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

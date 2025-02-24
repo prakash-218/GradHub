@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <!-- Poll content -->
+    
+    <!-- Comments section -->
+    <div class="comments-section mt-4">
+        <h4>Comments</h4>
+        {% for comment in poll.comments %}
+            {% include 'poll/_comment.html' %}
+        {% endfor %}
+        
+        <!-- Comment form -->
+        <form class="add-comment-form mt-3">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Write a comment...">
+                <button class="btn btn-primary" type="submit">Comment</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

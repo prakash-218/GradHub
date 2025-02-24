@@ -1,0 +1,9 @@
+<div class="message">
+    <div class="message-header">
+        <strong>{{ message.author.username }}</strong>
+        <small class="text-muted">{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+    </div>
+    <div class="message-content">
+        {{ message.content }}
+    </div>
+</div> 

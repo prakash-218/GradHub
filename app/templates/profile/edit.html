@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="h3 mb-0">Edit Profile</h1>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Undergraduate Details -->
+                        <h4 class="mb-3">Undergraduate Details</h4>
+                        <div class="mb-3">
+                            {{ form.university.label(class="form-label") }}
+                            {{ form.university(class="form-control") }}
+                            {% if form.university.errors %}
+                                {% for error in form.university.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.major.label(class="form-label") }}
+                            {{ form.major(class="form-control") }}
+                            {% if form.major.errors %}
+                                {% for error in form.major.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                {{ form.gpa.label(class="form-label") }}
+                                {{ form.gpa(class="form-control") }}
+                                {% if form.gpa.errors %}
+                                    {% for error in form.gpa.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div class="col">
+                                {{ form.gpa_scale.label(class="form-label") }}
+                                {{ form.gpa_scale(class="form-control") }}
+                                {% if form.gpa_scale.errors %}
+                                    {% for error in form.gpa_scale.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Test Scores -->
+                        <h4 class="mb-3">Test Scores</h4>
+                        <div class="row mb-3">
+                            <div class="col">
+                                {{ form.toefl_score.label(class="form-label") }}
+                                {{ form.toefl_score(class="form-control") }}
+                            </div>
+                            <div class="col">
+                                {{ form.ielts_score.label(class="form-label") }}
+                                {{ form.ielts_score(class="form-control") }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                {{ form.gre_verbal.label(class="form-label") }}
+                                {{ form.gre_verbal(class="form-control") }}
+                            </div>
+                            <div class="col">
+                                {{ form.gre_quant.label(class="form-label") }}
+                                {{ form.gre_quant(class="form-control") }}
+                            </div>
+                            <div class="col">
+                                {{ form.gre_awa.label(class="form-label") }}
+                                {{ form.gre_awa(class="form-control") }}
+                            </div>
+                        </div>
+
+                        <!-- Work Experience -->
+                        <h4 class="mb-3">Work Experience</h4>
+                        <div class="mb-3">
+                            {{ form.work_experience_years.label(class="form-label") }}
+                            {{ form.work_experience_years(class="form-control") }}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                {{ form.current_job.label(class="form-label") }}
+                                {{ form.current_job(class="form-control") }}
+                            </div>
+                            <div class="col">
+                                {{ form.company.label(class="form-label") }}
+                                {{ form.company(class="form-control") }}
+                            </div>
+                        </div>
+
+                        <!-- Research Experience -->
+                        <h4 class="mb-3">Research Experience</h4>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ form.research_experience(class="form-check-input") }}
+                                {{ form.research_experience.label(class="form-check-label") }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.publications.label(class="form-label") }}
+                            {{ form.publications(class="form-control") }}
+                        </div>
+
+                        <!-- Additional Information -->
+                        <h4 class="mb-3">Graduate School Plans</h4>
+                        <div class="row mb-3">
+                            <div class="col">
+                                {{ form.target_term.label(class="form-label") }}
+                                {{ form.target_term(class="form-control") }}
+                            </div>
+                            <div class="col">
+                                {{ form.target_degree.label(class="form-label") }}
+                                {{ form.target_degree(class="form-control") }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.target_major.label(class="form-label") }}
+                            {{ form.target_major(class="form-control") }}
+                        </div>
+
+                        <!-- Bio -->
+                        <h4 class="mb-3">About Me</h4>
+                        <div class="mb-3">
+                            {{ form.bio.label(class="form-label") }}
+                            {{ form.bio(class="form-control", rows=4) }}
+                            <div class="form-text">Tell others about yourself (max 500 characters)</div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">Save Profile</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

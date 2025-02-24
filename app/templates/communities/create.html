@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Create New Community</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3 search-container">
+                            {{ form.university.label(class="form-label") }}
+                            {{ form.university(class="form-control university-search") }}
+                            <div class="search-results position-absolute w-100 bg-white border rounded shadow-sm" style="display: none; z-index: 1000;"></div>
+                            {% if form.university.errors %}
+                                {% for error in form.university.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.program.label(class="form-label") }}
+                            {{ form.program(class="form-control") }}
+                            {% if form.program.errors %}
+                                {% for error in form.program.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows=4) }}
+                            {% if form.description.errors %}
+                                {% for error in form.description.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        
+                        {{ form.submit(class="btn btn-primary") }}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.search-container {
+    position: relative;
+}
+.search-results {
+    max-height: 200px;
+    overflow-y: auto;
+}
+.search-result-item {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+.search-result-item:hover {
+    background-color: #f8f9fa;
+}
+</style>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const universityInput = document.querySelector('.university-search');
+    const resultsDiv = document.querySelector('.search-results');
+    let searchTimeout;
+
+    universityInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        searchTimeout = setTimeout(async () => {
+            try {
+                const response = await fetch(`/api/universities/search?q=${encodeURIComponent(query)}`);
+                const universities = await response.json();
+                
+                resultsDiv.innerHTML = '';
+                universities.forEach(uni => {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'search-result-item';
+                    resultDiv.textContent = `${uni.name} (${uni.country})`;
+                    resultDiv.onclick = () => {
+                        universityInput.value = uni.name;
+                        resultsDiv.style.display = 'none';
+                    };
+                    resultsDiv.appendChild(resultDiv);
+                });
+                resultsDiv.style.display = universities.length ? 'block' : 'none';
+            } catch (error) {
+                console.error('Error searching universities:', error);
+            }
+        }, 300);
+    });
+
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!universityInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+            resultsDiv.style.display = 'none';
+        }
+    });
+
+    // Show results when focusing on input
+    universityInput.addEventListener('focus', function() {
+        if (this.value.trim().length >= 2) {
+            resultsDiv.style.display = 'block';
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h1>Profile</h1>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ user.username }}</h5>
+                <p class="card-text">Email: {{ user.email }}</p>
+                {% if user.is_admin %}
+                <span class="badge bg-success">Admin</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Statistics</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Total Polls: {{ stats.total_polls }}</li>
+                    <li class="list-group-item">Total Votes: {{ stats.total_votes }}</li>
+                    <li class="list-group-item">Total Comments: {{ stats.total_comments }}</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="mt-4">Polls</h2>
+        <div class="list-group">
+            {% for poll in user.polls %}
+            <a href="{{ url_for('main.view_poll', poll_id=poll.id) }}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ poll.title }}</h5>
+                    <small>{{ poll.created_at.strftime('%Y-%m-%d') }}</small>
+                </div>
+                <p class="mb-1">{{ poll.description[:100] }}{% if poll.description|length > 100 %}...{% endif %}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

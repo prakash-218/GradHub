@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Messages</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="list-group">
+                {% for follow in following %}
+                    <a href="{{ url_for('main.chat', user_id=follow.id) }}" 
+                       class="list-group-item list-group-item-action">
+                        {{ follow.username }}
+                    </a>
+                {% else %}
+                    <div class="alert alert-info">
+                        You're not following anyone yet. Follow users to start messaging!
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <p class="text-muted">Select a conversation to start messaging</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

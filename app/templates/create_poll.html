@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Create Poll</h1>
+    <form method="POST" class="mt-4">
+        {{ form.hidden_tag() }}
+        
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }}
+            {{ form.title(class="form-control") }}
+            {% if form.title.errors %}
+                {% for error in form.title.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control", rows=3) }}
+            {% if form.description.errors %}
+                {% for error in form.description.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            {{ form.poll_type.label(class="form-label") }}
+            {{ form.poll_type(class="form-select") }}
+            {% if form.poll_type.errors %}
+                {% for error in form.poll_type.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div id="course-input" class="mb-3" style="display: none;">
+            <label class="form-label">Course</label>
+            <input type="text" class="form-control" id="course-field" placeholder="Enter course name">
+        </div>
+
+        <div class="mb-3">
+            {{ form.end_date.label(class="form-label") }}
+            {{ form.end_date(class="form-control") }}
+            {% if form.end_date.errors %}
+                {% for error in form.end_date.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div id="options-container" class="mb-3">
+            <label class="form-label">Options</label>
+            <div id="option-inputs">
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control option-input" placeholder="Option 1">
+                    <button type="button" class="btn btn-outline-danger remove-option" style="display: none;">×</button>
+                </div>
+                <div class="input-group mb-2">
+                    <input type="text" class="form-control option-input" placeholder="Option 2">
+                    <button type="button" class="btn btn-outline-danger remove-option" style="display: none;">×</button>
+                </div>
+            </div>
+            <button type="button" class="btn btn-outline-secondary" id="add-option">+ Add Option</button>
+        </div>
+
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const optionsContainer = document.getElementById('option-inputs');
+    const addOptionBtn = document.getElementById('add-option');
+    const pollTypeSelect = document.getElementById('poll_type');
+    const courseInput = document.getElementById('course-input');
+
+    // Function to create university search input
+    function createUniversityInput(placeholder) {
+        const div = document.createElement('div');
+        div.className = 'input-group mb-2';
+        div.innerHTML = `
+            <input type="text" class="form-control option-input university-search" placeholder="${placeholder}">
+            <button type="button" class="btn btn-outline-danger remove-option">×</button>
+            <div class="search-results position-absolute w-100" style="top: 100%; z-index: 1000; display: none;"></div>
+        `;
+
+        const input = div.querySelector('.university-search');
+        const resultsDiv = div.querySelector('.search-results');
+
+        let searchTimeout;
+        input.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/universities/search?q=${encodeURIComponent(query)}`);
+                    const universities = await response.json();
+                    
+                    resultsDiv.innerHTML = '';
+                    universities.forEach(uni => {
+                        const resultDiv = document.createElement('div');
+                        resultDiv.className = 'p-2 bg-white border-bottom search-result-item';
+                        resultDiv.textContent = `${uni.name} (${uni.country})`;
+                        resultDiv.onclick = () => {
+                            input.value = uni.name;
+                            resultsDiv.style.display = 'none';
+                        };
+                        resultsDiv.appendChild(resultDiv);
+                    });
+                    resultsDiv.style.display = universities.length ? 'block' : 'none';
+                } catch (error) {
+                    console.error('Error searching universities:', error);
+                }
+            }, 300);
+        });
+
+        // Hide results when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target)) {
+                resultsDiv.style.display = 'none';
+            }
+        });
+
+        return div;
+    }
+
+    // Poll type change handler
+    pollTypeSelect.addEventListener('change', function() {
+        const isUniversity = this.value === 'university';
+        optionsContainer.innerHTML = '';
+        courseInput.style.display = isUniversity ? 'block' : 'none';
+        
+        // Add initial two options
+        optionsContainer.appendChild(
+            isUniversity ? 
+            createUniversityInput('University 1') : 
+            createBasicOptionInput('Option 1')
+        );
+        optionsContainer.appendChild(
+            isUniversity ? 
+            createUniversityInput('University 2') : 
+            createBasicOptionInput('Option 2')
+        );
+        
+        updateRemoveButtons();
+    });
+
+    // Add option button handler
+    addOptionBtn.addEventListener('click', function() {
+        const isUniversity = pollTypeSelect.value === 'university';
+        const newOption = isUniversity ? 
+            createUniversityInput(`University ${optionsContainer.children.length + 1}`) :
+            createBasicOptionInput(`Option ${optionsContainer.children.length + 1}`);
+        
+        optionsContainer.appendChild(newOption);
+        updateRemoveButtons();
+    });
+
+    // Form submit handler
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const options = Array.from(document.querySelectorAll('.option-input'))
+            .map(input => input.value.trim())
+            .filter(value => value);
+
+        if (options.length < 2) {
+            alert('Please provide at least two options');
+            return;
+        }
+
+        const formData = new FormData(form);
+        const data = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            poll_type: formData.get('poll_type'),
+            end_date: formData.get('end_date'),
+            options: formData.get('poll_type') === 'university' ?
+                options.map(name => ({ name })) : options
+        };
+
+        // Add course field for university polls
+        if (formData.get('poll_type') === 'university') {
+            const courseValue = document.getElementById('course-field').value.trim();
+            data.course = courseValue || 'General Comparison';
+        }
+
+        try {
+            const response = await fetch('/api/polls', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            if (response.ok) {
+                window.location.href = `/poll/${result.id}`;
+            } else {
+                alert(result.error || 'Failed to create poll');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while creating the poll');
+        }
+    });
+
+    // Initialize with correct input type based on initial poll type
+    if (pollTypeSelect.value === 'university') {
+        optionsContainer.innerHTML = '';
+        optionsContainer.appendChild(createUniversityInput('University 1'));
+        optionsContainer.appendChild(createUniversityInput('University 2'));
+        updateRemoveButtons();
+    }
+});
+</script>
+{% endblock %}
+{% endblock %} 

@@ -1,0 +1,16 @@
+<div class="comment mb-3" id="comment-{{ comment.id }}">
+    <div class="d-flex justify-content-between">
+        <div>
+            <strong>{{ comment.author.username }}</strong>
+            <small class="text-muted">{{ moment(comment.created_at).fromNow() }}</small>
+        </div>
+        {% if current_user == comment.author %}
+        <button class="btn btn-sm btn-danger delete-comment" data-comment-id="{{ comment.id }}">
+            <i class="fas fa-trash"></i>
+        </button>
+        {% endif %}
+    </div>
+    <div class="comment-content">
+        {{ comment.content|safe }}
+    </div>
+</div> 

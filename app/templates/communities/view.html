@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>{{ community.name }}</h1>
+        {% if current_user.is_authenticated %}
+        <button onclick="togglePin({{ community.id }})" 
+                class="btn btn-outline-secondary" id="pin-button">
+            <i class="fas fa-thumbtack {{ 'text-primary' if community in current_user.pinned_communities }}" 
+               id="pin-icon"></i>
+            <span id="pin-text">
+                {{ 'Unpin' if community in current_user.pinned_communities else 'Pin' }}
+            </span>
+        </button>
+        {% endif %}
+    </div>
+    <p>{{ community.description }}</p>
+    
+    {% if not is_member %}
+    <form action="{{ url_for('main.join_community', id=community.id) }}" method="POST">
+        {{ form.csrf_token }}
+        <button type="submit" class="btn btn-primary">Join Community</button>
+    </form>
+    {% endif %}
+    
+    <div class="chat-container mt-4 d-flex flex-column">
+        <div class="messages-wrapper">
+            <div class="messages" id="messages">
+                {% for message in messages|reverse %}
+                    {% include 'communities/_message.html' %}
+                {% endfor %}
+            </div>
+        </div>
+        
+        {% if is_member %}
+        <div class="message-form mt-3">
+            <textarea id="message-content" class="form-control" rows="2"></textarea>
+            <button onclick="sendMessage()" class="btn btn-primary mt-2">Send</button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.chat-container {
+    height: calc(100vh - 300px); /* Adjust based on your header/navigation height */
+    min-height: 400px;
+}
+
+.messages-wrapper {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: #2d3238;  /* Dark background */
+    border: 1px solid #404040;  /* Darker border */
+    border-radius: 0.25rem;
+}
+
+.messages {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.message {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background: #343a40;  /* Dark message background */
+    color: #e9ecef;  /* Light text */
+    border-radius: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.message-header {
+    margin-bottom: 0.25rem;
+    color: #adb5bd;  /* Muted text for header */
+}
+
+#message-content {
+    background: #343a40;
+    color: #e9ecef;
+    border: 1px solid #404040;
+}
+
+#message-content:focus {
+    background: #343a40;
+    color: #e9ecef;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Dark scrollbar styling */
+.messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messages::-webkit-scrollbar-track {
+    background: #343a40;
+    border-radius: 4px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+    background: #6c757d;
+    border-radius: 4px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+    background: #495057;
+}
+</style>
+
+<script>
+function sendMessage() {
+    const content = document.getElementById('message-content').value;
+    if (!content.trim()) return;
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch(`{{ url_for('main.post_message', id=community.id) }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ content: content })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.html) {
+            const messages = document.getElementById('messages');
+            messages.insertAdjacentHTML('beforeend', data.html);
+            document.getElementById('message-content').value = '';
+            scrollToBottom();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function scrollToBottom() {
+    const messages = document.getElementById('messages');
+    messages.scrollTop = messages.scrollHeight;
+}
+
+// Scroll to bottom when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    scrollToBottom();
+});
+
+function togglePin(communityId) {
+    const isPinned = document.getElementById('pin-text').textContent.trim() === 'Unpin';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch(`/communities/${communityId}/${isPinned ? 'unpin' : 'pin'}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    }).then(() => {
+        const pinIcon = document.getElementById('pin-icon');
+        const pinText = document.getElementById('pin-text');
+        
+        if (isPinned) {
+            pinIcon.classList.remove('text-primary');
+            pinText.textContent = 'Pin';
+        } else {
+            pinIcon.classList.add('text-primary');
+            pinText.textContent = 'Unpin';
+        }
+    });
+}
+</script>
+{% endblock %} 

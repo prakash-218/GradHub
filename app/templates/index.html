@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    {% if current_user.is_authenticated and current_user.pinned_communities %}
+    <div class="mb-4">
+        <h4>Pinned Communities</h4>
+        <div class="row">
+            {% for community in current_user.pinned_communities %}
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ community.name }}</h5>
+                        <p class="card-text small text-muted">{{ community.university }} - {{ community.program }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('main.view_community', id=community.id) }}" 
+                               class="btn btn-sm btn-primary">View</a>
+                            <button onclick="unpinCommunity({{ community.id }})" 
+                                    class="btn btn-sm btn-outline-light">
+                                <i class="fas fa-thumbtack text-primary pin-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if current_user.is_authenticated and current_user.pinned_conversations %}
+    <div class="mb-4">
+        <h4>Pinned Conversations</h4>
+        <div class="row">
+            {% for user in current_user.pinned_conversations %}
+            <div class="col-md-4 mb-3">
+                <div class="card bg-dark text-light">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ user.username }}</h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{{ url_for('main.chat', user_id=user.id) }}" 
+                               class="btn btn-sm btn-primary">Message</a>
+                            <button onclick="unpinConversation({{ user.id }})" 
+                                    class="btn btn-sm btn-outline-light">
+                                <i class="fas fa-thumbtack text-primary pin-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Polls</h1>
+        <div class="btn-group">
+            <a href="{{ url_for('main.index', sort='new') }}" 
+               class="btn btn-outline-primary {{ 'active' if sort == 'new' }}">New</a>
+            <a href="{{ url_for('main.index', sort='top') }}" 
+               class="btn btn-outline-primary {{ 'active' if sort == 'top' }}">Top</a>
+            <a href="{{ url_for('main.index', sort='trending') }}" 
+               class="btn btn-outline-primary {{ 'active' if sort == 'trending' }}">Trending</a>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for poll in polls.items %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-secondary me-2">{{ poll.upvote_count }} upvotes</span>
+                        <h5 class="card-title mb-0">{{ poll.title }}</h5>
+                    </div>
+                    <p class="card-text">{{ poll.description[:200] }}{% if poll.description|length > 200 %}...{% endif %}</p>
+                    <p class="text-muted">
+                        By {{ poll.author.username }} on {{ moment(poll.created_at).format('YYYY-MM-DD HH:mm') }}
+                        {% if poll.end_date %}
+                        <br>
+                        {% if poll.end_date > now() %}
+                        <span class="text-warning">
+                            <i class="fas fa-clock"></i> Ends {{ moment(poll.end_date).fromNow() }}
+                        </span>
+                        {% else %}
+                        <span class="text-danger">
+                            <i class="fas fa-clock"></i> Ended {{ moment(poll.end_date).fromNow() }}
+                        </span>
+                        {% endif %}
+                        {% endif %}
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('main.view_poll', poll_id=poll.id) }}" class="btn btn-primary">Vote</a>
+                        <button class="btn btn-outline-primary upvote-btn" data-poll-id="{{ poll.id }}"
+                            {% if current_user.is_anonymous %} disabled {% endif %}>
+                            <i class="fas fa-arrow-up"></i>
+                            <span class="upvote-count">{{ poll.upvote_count }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if polls.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.index', page=polls.prev_num, sort=sort) }}">Previous</a>
+            </li>
+            {% endif %}
+            {% if polls.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('main.index', page=polls.next_num, sort=sort) }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+<!-- Add Font Awesome for the upvote arrow -->
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    document.querySelectorAll('.upvote-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const pollId = this.dataset.pollId;
+            try {
+                const response = await fetch(`/poll/${pollId}/upvote`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Update the upvote count
+                    this.querySelector('.upvote-count').textContent = data.count;
+                    
+                    // Toggle the button appearance
+                    if (data.status === 'added') {
+                        this.classList.remove('btn-outline-primary');
+                        this.classList.add('btn-primary');
+                    } else {
+                        this.classList.remove('btn-primary');
+                        this.classList.add('btn-outline-primary');
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to update vote');
+            }
+        });
+    });
+});
+
+function pinCommunity(communityId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    fetch(`/communities/${communityId}/pin`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    }).then(() => window.location.reload());
+}
+
+function unpinCommunity(communityId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    fetch(`/communities/${communityId}/unpin`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    }).then(() => window.location.reload());
+}
+
+function unpinConversation(userId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch(`/messages/${userId}/unpin`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        }
+    }).then(response => {
+        if (response.ok) {
+            window.location.reload();
+        }
+    });
+}
+</script>
+{% endblock %}
+
+<style>
+.pin-icon {
+    transition: transform 0.2s ease;
+}
+
+.btn:hover .pin-icon {
+    transform: translateY(-2px);
+}
+
+.btn-sm .pin-icon {
+    font-size: 0.875rem;
+}
+
+.btn-outline-secondary:hover .pin-icon.text-primary {
+    color: #fff !important;
+}
+</style>
+{% endblock %} 

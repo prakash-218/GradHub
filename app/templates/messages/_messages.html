@@ -1,0 +1,8 @@
+{% for message in messages %}
+<div class="message mb-2 {{ 'text-end' if message.sender_id == current_user.id }}">
+    <small class="text-muted">{{ message.created_at.strftime('%H:%M') }}</small>
+    <div class="message-content p-2 rounded {{ 'bg-primary text-white' if message.sender_id == current_user.id else 'bg-light' }}">
+        {{ message.content }}
+    </div>
+</div>
+{% endfor %} 

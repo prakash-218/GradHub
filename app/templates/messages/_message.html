@@ -1,0 +1,62 @@
+<div class="message mb-3 {% if message.sender_id == current_user.id %}sent-message{% endif %}">
+    <div class="d-inline-block message-container">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted {% if message.sender_id == current_user.id %}text-end{% endif %}">
+                {{ message.sender.username }} • {{ message.created_at.strftime('%H:%M') }}
+            </small>
+        </div>
+        <div class="message-content p-3 rounded {% if message.sender_id == current_user.id %}bg-primary text-white{% else %}bg-secondary bg-opacity-25 text-light{% endif %}">
+            {{ message.content }}
+        </div>
+    </div>
+</div>
+
+<style>
+.message-container {
+    max-width: 70%;
+}
+.message-content {
+    width: fit-content;
+}
+.sent-message {
+    display: flex;
+    justify-content: flex-end;
+}
+.message-actions {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.message:hover .message-actions {
+    opacity: 1;
+}
+@media (max-width: 768px) {
+    .message-container {
+        width: 100%;
+    }
+    .sent-message .message-content {
+        margin-left: auto;
+    }
+    .message-actions {
+        opacity: 1;
+    }
+}
+</style>
+
+<script>
+function togglePin(messageId) {
+    const pinIcon = document.getElementById(`pin-icon-${messageId}`);
+    const isPinned = pinIcon.classList.contains('text-primary');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    fetch(`/messages/${messageId}/${isPinned ? 'unpin' : 'pin'}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    }).then(response => {
+        if (response.ok) {
+            pinIcon.classList.toggle('text-primary');
+        }
+    });
+}
+</script> 

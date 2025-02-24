@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">{{ user.username }}'s {{ title }}</h4>
+            <a href="{{ url_for('main.view_user_profile', username=user.username) }}" class="btn btn-outline-primary btn-sm">
+                Back to Profile
+            </a>
+        </div>
+        <div class="card-body">
+            {% if followers %}
+                <div class="list-group">
+                {% for follower in followers %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">
+                                    <a href="{{ url_for('main.view_user_profile', username=follower.username) }}" 
+                                       class="text-decoration-none">
+                                        {{ follower.username }}
+                                    </a>
+                                </h6>
+                                {% if follower.profile and follower.profile.university %}
+                                    <small class="text-muted">{{ follower.profile.university }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if follower != current_user %}
+                            {% if not current_user.is_following(follower) %}
+                                {% if current_user.has_follow_request_pending(follower) %}
+                                    <button class="btn btn-secondary btn-sm" disabled>Request Sent</button>
+                                {% else %}
+                                    <button class="btn btn-primary btn-sm follow-btn" 
+                                            data-user-id="{{ follower.id }}">Follow</button>
+                                {% endif %}
+                            {% else %}
+                                <button class="btn btn-outline-primary btn-sm unfollow-btn" 
+                                        data-user-id="{{ follower.id }}">Unfollow</button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No {{ title.lower() }} yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    // Follow button handler
+    document.querySelectorAll('.follow-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const userId = this.dataset.userId;
+            try {
+                const response = await fetch(`/follow/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.message === 'Follow request sent') {
+                        this.textContent = 'Request Sent';
+                        this.classList.remove('btn-primary');
+                        this.classList.add('btn-secondary');
+                        this.disabled = true;
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    alert('Failed to follow user. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+
+    // Unfollow button handler
+    document.querySelectorAll('.unfollow-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const userId = this.dataset.userId;
+            if (!confirm('Are you sure you want to unfollow this user?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/unfollow/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Failed to unfollow user. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

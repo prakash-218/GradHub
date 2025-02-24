@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>{% if application %}Edit{% else %}New{% endif %} Application</h1>
+    </div>
+
+    <style>
+    .search-container {
+        position: relative;
+    }
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+    .search-result-item {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+    .search-result-item:hover {
+        background-color: #f8f9fa;
+    }
+    </style>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">University & Program Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.university.label(class="form-label") }}
+                        <div class="search-container">
+                            {{ form.university(class="form-control university-search") }}
+                            <div class="search-results"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.program.label(class="form-label") }}
+                        <div class="search-container">
+                            {{ form.program(class="form-control program-search") }}
+                            <div class="search-results"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.term.label(class="form-label") }}
+                        {{ form.term(class="form-control") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.degree_type.label(class="form-label") }}
+                        {{ form.degree_type(class="form-select") }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Application Status & Dates</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.status.label(class="form-label") }}
+                        {{ form.status(class="form-select") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.deadline.label(class="form-label") }}
+                        {{ form.deadline(class="form-control", type="date") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.applied_date.label(class="form-label") }}
+                        {{ form.applied_date(class="form-control", type="date") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.decision_date.label(class="form-label") }}
+                        {{ form.decision_date(class="form-control", type="date") }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Documents & Requirements</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check">
+                            {{ form.transcripts_submitted(class="form-check-input") }}
+                            {{ form.transcripts_submitted.label(class="form-check-label") }}
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check">
+                            {{ form.sop_submitted(class="form-check-input") }}
+                            {{ form.sop_submitted.label(class="form-check-label") }}
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="form-check">
+                            {{ form.resume_submitted(class="form-check-input") }}
+                            {{ form.resume_submitted.label(class="form-check-label") }}
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        {{ form.lors_submitted.label(class="form-label") }}
+                        {{ form.lors_submitted(class="form-control") }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.application_fee.label(class="form-label") }}
+                        {{ form.application_fee(class="form-control") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check mt-4">
+                            {{ form.fee_paid(class="form-check-input") }}
+                            {{ form.fee_paid.label(class="form-check-label") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Notes</h5>
+            </div>
+            <div class="card-body">
+                {{ form.notes.label(class="form-label") }}
+                {{ form.notes(class="form-control", rows=4) }}
+            </div>
+        </div>
+
+        <div class="text-center">
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('main.applications') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const universityInput = document.querySelector('.university-search');
+    const programInput = document.querySelector('.program-search');
+    let selectedUniversity = '';
+
+    if (universityInput) {
+        let searchTimeout;
+        const resultsDiv = universityInput.parentElement.querySelector('.search-results');
+
+        universityInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/universities/search?q=${encodeURIComponent(query)}`);
+                    const universities = await response.json();
+                    
+                    resultsDiv.innerHTML = '';
+                    universities.forEach(uni => {
+                        const div = document.createElement('div');
+                        div.className = 'search-result-item';
+                        div.textContent = `${uni.name} (${uni.country})`;
+                        div.onclick = () => {
+                            universityInput.value = uni.name;
+                            selectedUniversity = uni.name;
+                            resultsDiv.style.display = 'none';
+                            // Clear program field when university changes
+                            programInput.value = '';
+                        };
+                        resultsDiv.appendChild(div);
+                    });
+                    resultsDiv.style.display = universities.length ? 'block' : 'none';
+                } catch (error) {
+                    console.error('Error searching universities:', error);
+                }
+            }, 300);
+        });
+
+        // Hide results when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!universityInput.contains(e.target)) {
+                resultsDiv.style.display = 'none';
+            }
+        });
+    }
+
+    if (programInput) {
+        let searchTimeout;
+        const resultsDiv = programInput.parentElement.querySelector('.search-results');
+
+        programInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2 || !selectedUniversity) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/universities/${encodeURIComponent(selectedUniversity)}/programs/search?q=${encodeURIComponent(query)}`);
+                    const programs = await response.json();
+                    
+                    resultsDiv.innerHTML = '';
+                    programs.forEach(prog => {
+                        const div = document.createElement('div');
+                        div.className = 'search-result-item';
+                        div.textContent = prog.name;
+                        div.onclick = () => {
+                            programInput.value = prog.name;
+                            resultsDiv.style.display = 'none';
+                        };
+                        resultsDiv.appendChild(div);
+                    });
+                    resultsDiv.style.display = programs.length ? 'block' : 'none';
+                } catch (error) {
+                    console.error('Error searching programs:', error);
+                }
+            }, 300);
+        });
+
+        // Hide results when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!programInput.contains(e.target)) {
+                resultsDiv.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
+{% endblock %} 

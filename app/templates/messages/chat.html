@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Desktop View -->
+<div class="container-fluid bg-dark text-light vh-100 d-none d-md-flex flex-column">
+    <div class="row flex-grow-1 overflow-hidden">
+        <!-- Sidebar -->
+        <div class="col-md-2 border-end border-secondary overflow-auto h-100">
+            <div class="list-group list-group-flush">
+                {% if current_user.pinned_conversations.all() %}
+                <div class="border-bottom border-secondary mb-2 pb-2">
+                    <small class="text-muted d-block mb-2 ps-3">Pinned Conversations</small>
+                    {% for user in current_user.pinned_conversations %}
+                        <a href="{{ url_for('main.chat', user_id=user.id) }}" 
+                           class="list-group-item list-group-item-action bg-dark text-light border-secondary
+                                  {{ 'active bg-primary' if other_user and user.id == other_user.id }}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>{{ user.username }}</span>
+                                <button onclick="event.preventDefault(); unpinConversation({{ user.id }})" 
+                                        class="btn btn-link btn-sm p-0 text-light">
+                                    <i class="fas fa-thumbtack text-primary"></i>
+                                </button>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% for follow in following %}
+                    <a href="{{ url_for('main.chat', user_id=follow.followed.id) }}" 
+                       class="list-group-item list-group-item-action bg-dark text-light border-secondary
+                              {{ 'active bg-primary' if other_user and follow.followed.id == other_user.id }}">
+                        {{ follow.followed.username }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="col-md-10 d-flex flex-column h-100">
+            <div class="bg-dark border-bottom border-secondary p-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{% if other_user %}{{ other_user.username }}{% else %}Select a conversation{% endif %}</h5>
+                {% if other_user %}
+                <button onclick="toggleConversationPin({{ other_user.id }})" 
+                        class="btn btn-link btn-sm text-light">
+                    <i class="fas fa-thumbtack {{ 'text-primary' if other_user in current_user.pinned_conversations }}"
+                       id="conversation-pin-icon"></i>
+                </button>
+                {% endif %}
+            </div>
+            {% if other_user %}
+            <div class="flex-grow-1 overflow-hidden d-flex flex-column">
+                <div class="messages-container flex-grow-1 overflow-auto p-3">
+                    <div id="messages" class="d-flex flex-column">
+                        {% include 'messages/_message_list.html' %}
+                    </div>
+                </div>
+                <form id="message-form" class="p-3 bg-dark border-top border-secondary">
+                    <div class="input-group">
+                        <input type="text" id="message-input" 
+                               class="form-control bg-dark text-light border-secondary" 
+                               placeholder="Type your message...">
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </div>
+                </form>
+            </div>
+            <div class="pinned-messages-container bg-dark border-bottom border-secondary p-2" style="display: none;" id="pinned-messages">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0"><i class="fas fa-thumbtack"></i> Pinned Messages</h6>
+                    <button class="btn btn-link btn-sm text-light" onclick="togglePinnedMessages()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="pinned-messages-list">
+                    {% for message in messages %}
+                        {% if message.pinned %}
+                            {% include 'messages/_message.html' %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="flex-grow-1 d-flex align-items-center justify-content-center">
+                <p class="text-muted">Select a conversation to start messaging</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Mobile View -->
+<div class="d-md-none bg-dark text-light min-vh-100">
+    {% if not other_user %}
+    <!-- Mobile Contact List -->
+    <div class="container-fluid p-0">
+        <div class="p-3 border-bottom border-secondary">
+            <h5 class="mb-0">Messages</h5>
+        </div>
+        <div class="list-group list-group-flush">
+            {% for follow in following %}
+                <a href="{{ url_for('main.chat', user_id=follow.followed.id) }}" 
+                   class="list-group-item list-group-item-action bg-dark text-light border-secondary p-3">
+                    {{ follow.followed.username }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Mobile Chat View -->
+    <div class="d-flex flex-column vh-100">
+        <!-- Header with back button -->
+        <div class="bg-dark border-bottom border-secondary p-3 d-flex align-items-center">
+            <a href="{{ url_for('main.chat', user_id=None) }}" class="text-light me-3">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h5 class="mb-0">{{ other_user.username }}</h5>
+        </div>
+        
+        <!-- Messages -->
+        <div class="flex-grow-1 overflow-hidden d-flex flex-column">
+            <div class="messages-container flex-grow-1 overflow-auto p-2">
+                <div id="messages" class="d-flex flex-column">
+                    {% include 'messages/_message_list.html' %}
+                </div>
+            </div>
+            
+            <!-- Mobile Input Form -->
+            <form id="message-form" class="p-2 bg-dark border-top border-secondary">
+                <div class="input-group">
+                    <input type="text" id="message-input" 
+                           class="form-control bg-dark text-light border-secondary" 
+                           placeholder="Message...">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.message-content {
+    max-width: 70%;
+    word-wrap: break-word;
+}
+.messages-container {
+    display: flex;
+    flex-direction: column-reverse;
+}
+/* Dark mode scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #343a40;
+}
+::-webkit-scrollbar-thumb {
+    background: #6c757d;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #495057;
+}
+@media (max-width: 768px) {
+    .message-content {
+        max-width: 85%;
+    }
+}
+.pinned-messages-container {
+    max-height: 30vh;
+    overflow-y: auto;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.pinned-messages-list .message {
+    opacity: 0.8;
+    transform: scale(0.9);
+    margin-left: 1rem;
+}
+</style>
+
+<script>
+{% if other_user %}
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('message-form');
+    const input = document.getElementById('message-input');
+    const messages = document.getElementById('messages');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    function scrollToBottom() {
+        const container = document.querySelector('.messages-container');
+        container.scrollTop = container.scrollHeight;
+    }
+    scrollToBottom();
+
+    const pinnedMessagesContainer = document.getElementById('pinned-messages');
+    const pinnedMessagesList = document.querySelector('.pinned-messages-list');
+
+    function togglePinnedMessages() {
+        if (pinnedMessagesContainer) {
+            const isHidden = pinnedMessagesContainer.style.display === 'none';
+            pinnedMessagesContainer.style.display = isHidden ? 'block' : 'none';
+        }
+    }
+
+    async function loadMessages() {
+        try {
+            const response = await fetch('{{ url_for("main.load_messages", user_id=other_user.id) }}');
+            const html = await response.text();
+            messages.innerHTML = html;
+            
+            // Update pinned messages
+            const pinnedMessages = Array.from(messages.querySelectorAll('.message'))
+                .filter(msg => msg.querySelector('.fa-thumbtack.text-primary'));
+            if (pinnedMessagesList) {
+                pinnedMessagesList.innerHTML = pinnedMessages.map(msg => msg.outerHTML).join('');
+                pinnedMessagesContainer.style.display = pinnedMessages.length > 0 ? 'block' : 'none';
+            }
+            
+            scrollToBottom();
+        } catch (error) {
+            console.error('Error loading messages:', error);
+        }
+    }
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const content = input.value.trim();
+        if (!content) return;
+
+        try {
+            const response = await fetch('{{ url_for("main.chat", user_id=other_user.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `content=${encodeURIComponent(content)}`
+            });
+
+            if (response.ok) {
+                input.value = '';
+                await loadMessages();
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
+    };
+
+    setInterval(loadMessages, 10000);
+
+    function toggleConversationPin(userId) {
+        const pinIcon = document.getElementById('conversation-pin-icon');
+        const isPinned = pinIcon.classList.contains('text-primary');
+        
+        fetch(`/messages/${userId}/${isPinned ? 'unpin' : 'pin'}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                console.error('Failed to toggle pin');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function unpinConversation(userId) {
+        fetch(`/messages/${userId}/unpin`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                console.error('Failed to unpin conversation');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // Make these functions globally available
+    window.toggleConversationPin = toggleConversationPin;
+    window.unpinConversation = unpinConversation;
+});
+{% endif %}
+</script>
+{% endblock %} 

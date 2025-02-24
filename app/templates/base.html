@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+    
+    <title>{% block title %}{% endblock %} GradHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-3.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    {{ moment.include_moment() }}
+    <style>
+        /* Custom dark mode styles */
+        .navbar {
+            background-color: #1a1d20 !important;
+        }
+        .card {
+            background-color: #2d3238;
+            border-color: #404040;
+        }
+        .dropdown-menu {
+            background-color: #2d3238;
+            border-color: #404040;
+        }
+        .dropdown-item:hover {
+            background-color: #3d4248;
+        }
+        .btn-outline-primary {
+            border-color: #375a7f;
+            color: #375a7f;
+        }
+        .btn-outline-primary:hover {
+            background-color: #375a7f;
+            color: white;
+        }
+        .alert {
+            background-color: #2d3238;
+            border-color: #404040;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <i class="fas fa-university me-2"></i>GradHub
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <!-- Polls Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-chart-bar"></i> Polls
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('main.index') }}">Active Polls</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.archived_polls') }}">Archived Polls</a></li>
+                            {% if current_user.is_authenticated %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.create_poll') }}">Create Poll</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+                    <!-- Admissions Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-graduation-cap"></i> Admissions
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('main.admissions') }}">View Results</a></li>
+                            {% if current_user.is_authenticated %}
+                            <li><a class="dropdown-item" href="{{ url_for('main.new_admission_result') }}">Share Result</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+                    <!-- Communities -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.communities') }}">Communities</a>
+                    </li>
+
+                    {% if current_user.is_authenticated %}
+                    <!-- Applications -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.applications') }}">
+                            <i class="fas fa-tasks"></i> My Applications
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <ul class="navbar-nav">
+                    <!-- Search -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.search_users') }}">
+                            <i class="fas fa-search"></i> Search
+                        </a>
+                    </li>
+
+                    <!-- Messages -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.chat') }}">
+                            <i class="fas fa-envelope"></i> Messages
+                        </a>
+                    </li>
+
+                    {% if current_user.is_authenticated %}
+                        <!-- User Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i> {{ current_user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ url_for('main.view_user_profile', username=current_user.username) }}">My Profile</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.profile') }}">Edit Profile</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.follow_requests') }}">Follow Requests</a></li>
+                                {% if current_user.is_admin %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('main.admin_dashboard') }}">Admin Dashboard</a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

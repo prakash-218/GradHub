@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <h1>{{ user.username }}</h1>
+            
+            {% if user == current_user %}
+            <!-- Privacy Toggle -->
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" id="privacyToggle" 
+                       {% if current_user.is_private %}checked{% endif %}>
+                <label class="form-check-label" for="privacyToggle">Private Profile</label>
+            </div>
+            
+            <!-- Follow Requests -->
+            {% if current_user.follow_requests_received.count() > 0 %}
+            <div class="card mb-3">
+                <div class="card-header">Follow Requests</div>
+                <div class="card-body">
+                    {% for request in current_user.follow_requests_received %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ request.requester.username }}</span>
+                        <div>
+                            <button class="btn btn-sm btn-success accept-follow" 
+                                    data-user-id="{{ request.requester_id }}">Accept</button>
+                            <button class="btn btn-sm btn-danger reject-follow" 
+                                    data-user-id="{{ request.requester_id }}">Reject</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <!-- Follow Button -->
+            {% if not current_user.is_following(user) %}
+            <button class="btn btn-primary follow-btn" data-user-id="{{ user.id }}">
+                {% if current_user.has_follow_request_pending(user) %}
+                Follow Request Sent
+                {% else %}
+                Follow
+                {% endif %}
+            </button>
+            {% else %}
+            <button class="btn btn-secondary unfollow-btn" data-user-id="{{ user.id }}">Unfollow</button>
+            {% endif %}
+            {% endif %}
+        </div>
+        
+        <!-- Rest of your profile content -->
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Privacy Toggle
+    const privacyToggle = document.getElementById('privacyToggle');
+    if (privacyToggle) {
+        privacyToggle.addEventListener('change', function() {
+            fetch('/toggle_privacy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Privacy updated:', data.is_private);
+            });
+        });
+    }
+
+    // Follow Button
+    document.querySelectorAll('.follow-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            fetch(`/follow/${userId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Follow request sent') {
+                    this.textContent = 'Follow Request Sent';
+                } else {
+                    location.reload();
+                }
+            });
+        });
+    });
+
+    // Unfollow Button
+    document.querySelectorAll('.unfollow-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            fetch(`/unfollow/${userId}`, {
+                method: 'POST'
+            })
+            .then(() => location.reload());
+        });
+    });
+
+    // Accept/Reject Follow Requests
+    document.querySelectorAll('.accept-follow').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            fetch(`/accept_follow/${userId}`, {
+                method: 'POST'
+            })
+            .then(() => location.reload());
+        });
+    });
+
+    document.querySelectorAll('.reject-follow').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            fetch(`/reject_follow/${userId}`, {
+                method: 'POST'
+            })
+            .then(() => location.reload());
+        });
+    });
+});
+</script>
+{% endblock %} 
