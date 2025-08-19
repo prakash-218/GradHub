@@ -2,55 +2,160 @@
 
 {% block content %}
 <div class="container">
-    <div class="row">
-        <div class="col-md-4">
-            <h1>{{ user.username }}</h1>
-            
-            {% if user == current_user %}
-            <!-- Privacy Toggle -->
-            <div class="form-check form-switch mb-3">
-                <input class="form-check-input" type="checkbox" id="privacyToggle" 
-                       {% if current_user.is_private %}checked{% endif %}>
-                <label class="form-check-label" for="privacyToggle">Private Profile</label>
+    <!-- Hero Section -->
+    <div class="hero-section text-center mb-5">
+        <div class="user-profile-hero">
+            <div class="user-avatar-large mb-4">
+                <i class="fas fa-user-circle fa-5x text-primary"></i>
             </div>
-            
-            <!-- Follow Requests -->
-            {% if current_user.follow_requests_received.count() > 0 %}
-            <div class="card mb-3">
-                <div class="card-header">Follow Requests</div>
-                <div class="card-body">
+            <h1 class="display-4 fw-bold mb-3">{{ user.username }}</h1>
+            <p class="lead text-muted mb-4">
+                {% if user == current_user %}
+                    Welcome to your profile
+                {% else %}
+                    Graduate Student Profile
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-md-4 mb-4">
+            <div class="section-card">
+                <div class="section-header mb-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Profile Settings
+                    </h5>
+                </div>
+                
+                {% if user == current_user %}
+                <!-- Privacy Toggle -->
+                <div class="privacy-section mb-4">
+                    <label class="form-label text-muted">Profile Privacy</label>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="privacyToggle" 
+                               {% if current_user.is_private %}checked{% endif %}>
+                        <label class="form-check-label" for="privacyToggle">
+                            Private Profile
+                        </label>
+                    </div>
+                    <small class="text-muted">When enabled, only approved followers can see your profile</small>
+                </div>
+                
+                <!-- Follow Requests -->
+                {% if current_user.follow_requests_received.count() > 0 %}
+                <div class="follow-requests-section">
+                    <h6 class="text-muted mb-3">
+                        <i class="fas fa-user-plus me-2"></i>Follow Requests
+                        <span class="badge bg-primary ms-2">{{ current_user.follow_requests_received.count() }}</span>
+                    </h6>
+                    
                     {% for request in current_user.follow_requests_received %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>{{ request.requester.username }}</span>
-                        <div>
-                            <button class="btn btn-sm btn-success accept-follow" 
-                                    data-user-id="{{ request.requester_id }}">Accept</button>
-                            <button class="btn btn-sm btn-danger reject-follow" 
-                                    data-user-id="{{ request.requester_id }}">Reject</button>
+                    <div class="follow-request-item mb-3 p-3 rounded" style="background: rgba(30, 41, 59, 0.3);">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-user-circle fa-lg text-primary me-2"></i>
+                            <span class="fw-bold">{{ request.requester.username }}</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-success btn-sm accept-follow" 
+                                    data-user-id="{{ request.requester_id }}">
+                                <i class="fas fa-check me-1"></i>Accept
+                            </button>
+                            <button class="btn btn-danger btn-sm reject-follow" 
+                                    data-user-id="{{ request.requester_id }}">
+                                <i class="fas fa-times me-1"></i>Reject
+                            </button>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
-            </div>
-            {% endif %}
-            
-            {% else %}
-            <!-- Follow Button -->
-            {% if not current_user.is_following(user) %}
-            <button class="btn btn-primary follow-btn" data-user-id="{{ user.id }}">
-                {% if current_user.has_follow_request_pending(user) %}
-                Follow Request Sent
-                {% else %}
-                Follow
                 {% endif %}
-            </button>
-            {% else %}
-            <button class="btn btn-secondary unfollow-btn" data-user-id="{{ user.id }}">Unfollow</button>
-            {% endif %}
-            {% endif %}
+                
+                {% else %}
+                <!-- Follow Button for Other Users -->
+                <div class="follow-section text-center">
+                    {% if not current_user.is_following(user) %}
+                    <button class="btn btn-primary btn-lg follow-btn w-100" data-user-id="{{ user.id }}">
+                        {% if current_user.has_follow_request_pending(user) %}
+                        <i class="fas fa-clock me-2"></i>Follow Request Sent
+                        {% else %}
+                        <i class="fas fa-user-plus me-2"></i>Follow
+                        {% endif %}
+                    </button>
+                    {% else %}
+                    <button class="btn btn-secondary btn-lg unfollow-btn w-100" data-user-id="{{ user.id }}">
+                        <i class="fas fa-user-check me-2"></i>Unfollow
+                    </button>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
         </div>
         
-        <!-- Rest of your profile content -->
+        <!-- Profile Content -->
+        <div class="col-md-8">
+            <div class="section-card">
+                <div class="section-header mb-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Profile Information
+                    </h5>
+                </div>
+                
+                <div class="profile-content">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="profile-field">
+                                <label class="text-muted small">Username</label>
+                                <p class="fw-bold">{{ user.username }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="profile-field">
+                                <label class="text-muted small">Member Since</label>
+                                <p class="fw-bold">{{ user.created_at.strftime('%B %Y') if user.created_at else 'N/A' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if user.bio %}
+                    <div class="profile-field mb-3">
+                        <label class="text-muted small">Bio</label>
+                        <p class="fw-bold">{{ user.bio }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="profile-stats mt-4">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <div class="stat-number text-primary fw-bold fs-4">
+                                        {{ user.followers.count() }}
+                                    </div>
+                                    <div class="stat-label text-muted small">Followers</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <div class="stat-number text-success fw-bold fs-4">
+                                        {{ user.following.count() }}
+                                    </div>
+                                    <div class="stat-label text-muted small">Following</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-item">
+                                    <div class="stat-number text-info fw-bold fs-4">
+                                        {{ user.posts.count() if user.posts else 0 }}
+                                    </div>
+                                    <div class="stat-label text-muted small">Posts</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -69,6 +174,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 console.log('Privacy updated:', data.is_private);
+                showToast('Privacy settings updated successfully!', 'success');
+            })
+            .catch(error => {
+                showToast('Failed to update privacy settings', 'error');
             });
         });
     }
@@ -77,16 +186,29 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.follow-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const userId = this.dataset.userId;
+            const originalText = this.innerHTML;
+            
+            this.classList.add('loading');
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
             fetch(`/follow/${userId}`, {
                 method: 'POST'
             })
             .then(response => response.json())
             .then(data => {
                 if (data.message === 'Follow request sent') {
-                    this.textContent = 'Follow Request Sent';
+                    this.innerHTML = '<i class="fas fa-clock me-2"></i>Follow Request Sent';
+                    showToast('Follow request sent successfully!', 'success');
                 } else {
                     location.reload();
                 }
+            })
+            .catch(error => {
+                this.innerHTML = originalText;
+                showToast('Failed to send follow request', 'error');
+            })
+            .finally(() => {
+                this.classList.remove('loading');
             });
         });
     });
@@ -95,10 +217,25 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.unfollow-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const userId = this.dataset.userId;
+            const originalText = this.innerHTML;
+            
+            this.classList.add('loading');
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
             fetch(`/unfollow/${userId}`, {
                 method: 'POST'
             })
-            .then(() => location.reload());
+            .then(response => response.json())
+            .then(data => {
+                location.reload();
+            })
+            .catch(error => {
+                this.innerHTML = originalText;
+                showToast('Failed to unfollow user', 'error');
+            })
+            .finally(() => {
+                this.classList.remove('loading');
+            });
         });
     });
 
@@ -106,22 +243,69 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.accept-follow').forEach(btn => {
         btn.addEventListener('click', function() {
             const userId = this.dataset.userId;
+            const requestItem = this.closest('.follow-request-item');
+            
+            this.classList.add('loading');
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
             fetch(`/accept_follow/${userId}`, {
                 method: 'POST'
             })
-            .then(() => location.reload());
+            .then(response => response.json())
+            .then(data => {
+                requestItem.style.opacity = '0.5';
+                setTimeout(() => {
+                    requestItem.remove();
+                    showToast('Follow request accepted!', 'success');
+                }, 500);
+            })
+            .catch(error => {
+                this.innerHTML = '<i class="fas fa-check me-1"></i>Accept';
+                showToast('Failed to accept follow request', 'error');
+            })
+            .finally(() => {
+                this.classList.remove('loading');
+            });
         });
     });
 
     document.querySelectorAll('.reject-follow').forEach(btn => {
         btn.addEventListener('click', function() {
             const userId = this.dataset.userId;
+            const requestItem = this.closest('.follow-request-item');
+            
+            this.classList.add('loading');
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
             fetch(`/reject_follow/${userId}`, {
                 method: 'POST'
             })
-            .then(() => location.reload());
+            .then(response => response.json())
+            .then(data => {
+                requestItem.style.opacity = '0.5';
+                setTimeout(() => {
+                    requestItem.remove();
+                    showToast('Follow request rejected', 'info');
+                }, 500);
+            })
+            .catch(error => {
+                this.innerHTML = '<i class="fas fa-times me-1"></i>Reject';
+                showToast('Failed to reject follow request', 'error');
+            })
+            .finally(() => {
+                this.classList.remove('loading');
+            });
         });
     });
 });
+
+// Toast notification system (if not already defined)
+function showToast(message, type = 'info') {
+    if (typeof window.showToast === 'function') {
+        window.showToast(message, type);
+    } else {
+        console.log(`${type.toUpperCase()}: ${message}`);
+    }
+}
 </script>
 {% endblock %} 

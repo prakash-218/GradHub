@@ -1,7 +1,15 @@
 <div class="message">
     <div class="message-header">
-        <strong>{{ message.author.username }}</strong>
-        <small class="text-muted">{{ message.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+        <div class="message-author">
+            <i class="fas fa-user-circle fa-lg text-primary me-2"></i>
+            <strong class="text-primary">{{ message.author.username }}</strong>
+        </div>
+        <div class="message-timestamp">
+            <small class="text-muted">
+                <i class="fas fa-clock me-1"></i>
+                {{ message.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+            </small>
+        </div>
     </div>
     <div class="message-content">
         {{ message.content }}
