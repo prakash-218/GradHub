@@ -13,41 +13,26 @@
     <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
     
     <title>{% block title %}{% endblock %} GradHub</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
+    
+    <!-- Scripts -->
     <script src="https://cdn.plot.ly/plotly-3.0.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     {{ moment.include_moment() }}
-    <style>
-        /* Custom dark mode styles */
-        .navbar {
-            background-color: #1a1d20 !important;
-        }
-        .card {
-            background-color: #2d3238;
-            border-color: #404040;
-        }
-        .dropdown-menu {
-            background-color: #2d3238;
-            border-color: #404040;
-        }
-        .dropdown-item:hover {
-            background-color: #3d4248;
-        }
-        .btn-outline-primary {
-            border-color: #375a7f;
-            color: #375a7f;
-        }
-        .btn-outline-primary:hover {
-            background-color: #375a7f;
-            color: white;
-        }
-        .alert {
-            background-color: #2d3238;
-            border-color: #404040;
-        }
-    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">

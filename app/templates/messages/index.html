@@ -2,26 +2,125 @@
 
 {% block content %}
 <div class="container">
-    <h1>Messages</h1>
+    <!-- Hero Section -->
+    <div class="hero-section text-center mb-4">
+        <h1 class="display-5 fw-bold mb-3">
+            <span class="text-gradient">Messages</span>
+        </h1>
+        <p class="lead text-muted mb-3">
+            Connect with fellow graduate students through direct messaging
+        </p>
+    </div>
+
     <div class="row">
-        <div class="col-md-4">
-            <div class="list-group">
-                {% for follow in following %}
-                    <a href="{{ url_for('main.chat', user_id=follow.id) }}" 
-                       class="list-group-item list-group-item-action">
-                        {{ follow.username }}
-                    </a>
-                {% else %}
-                    <div class="alert alert-info">
-                        You're not following anyone yet. Follow users to start messaging!
+        <!-- Conversations List -->
+        <div class="col-md-4 mb-4">
+            <div class="section-card">
+                <div class="section-header mb-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>Conversations
+                        {% if following %}
+                        <span class="badge bg-primary ms-2">{{ following|length }}</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                
+                {% if following %}
+                    <div class="conversations-list">
+                        {% for follow in following %}
+                        <div class="conversation-item mb-2">
+                            <a href="{{ url_for('main.chat', user_id=follow.id) }}" 
+                               class="conversation-link">
+                                <div class="d-flex align-items-center p-3 rounded conversation-card">
+                                    <div class="user-avatar me-3">
+                                        <i class="fas fa-user-circle fa-lg text-primary"></i>
+                                    </div>
+                                    <div class="conversation-details flex-grow-1">
+                                        <h6 class="mb-1 text-primary">{{ follow.username }}</h6>
+                                        <p class="text-muted small mb-0">
+                                            <i class="fas fa-circle text-success me-1"></i>Online
+                                        </p>
+                                    </div>
+                                    <div class="conversation-arrow">
+                                        <i class="fas fa-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
+                {% else %}
+                    <!-- Empty Conversations State -->
+                    <div class="empty-conversations text-center py-4">
+                        <i class="fas fa-comments fa-2x text-muted mb-3"></i>
+                        <h6 class="text-muted mb-2">No conversations yet</h6>
+                        <p class="text-muted small mb-3">Follow users to start messaging!</p>
+                        <a href="{{ url_for('main.search_users') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-search me-2"></i>Find Users
+                        </a>
+                    </div>
+                {% endif %}
             </div>
         </div>
+        
+        <!-- Chat Area -->
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-body text-center">
-                    <p class="text-muted">Select a conversation to start messaging</p>
+            <div class="section-card">
+                <div class="chat-placeholder text-center py-5">
+                    <div class="chat-illustration mb-4">
+                        <i class="fas fa-comment-dots fa-3x text-primary"></i>
+                    </div>
+                    <h4 class="text-muted mb-3">
+                        {% if following %}
+                            Select a conversation to start messaging
+                        {% else %}
+                            Start connecting with other students
+                        {% endif %}
+                    </h4>
+                    <p class="text-muted mb-4">
+                        {% if following %}
+                            Choose a conversation from the list to begin chatting
+                        {% else %}
+                            Follow other users to unlock messaging features
+                        {% endif %}
+                    </p>
+                    
+                    {% if not following %}
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="{{ url_for('main.search_users') }}" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>Search Users
+                        </a>
+                        <a href="{{ url_for('main.communities') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-users me-2"></i>Join Communities
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="chat-tips">
+                        <div class="row text-center">
+                            <div class="col-md-4 mb-3">
+                                <div class="tip-item">
+                                    <i class="fas fa-lightbulb text-warning mb-2"></i>
+                                    <h6 class="text-muted">Quick Start</h6>
+                                    <p class="text-muted small">Click on any conversation to begin chatting</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="tip-item">
+                                    <i class="fas fa-users text-info mb-2"></i>
+                                    <h6 class="text-muted">Build Connections</h6>
+                                    <p class="text-muted small">Follow more users to expand your network</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="tip-item">
+                                    <i class="fas fa-shield-alt text-success mb-2"></i>
+                                    <h6 class="text-muted">Privacy First</h6>
+                                    <p class="text-muted small">Your conversations are private and secure</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

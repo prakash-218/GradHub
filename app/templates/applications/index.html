@@ -2,75 +2,168 @@
 
 {% block content %}
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>My Applications</h1>
-        <div>
-            <a href="{{ url_for('main.application_flow') }}" class="btn btn-info me-2">View Flow</a>
-            <a href="{{ url_for('main.new_application') }}" class="btn btn-primary">Add New Application</a>
+    <!-- Hero Section -->
+    <div class="hero-section text-center mb-5">
+        <h1 class="display-4 fw-bold mb-3">
+            My <span class="text-gradient">Applications</span>
+        </h1>
+        <p class="lead text-muted mb-4">
+            Track your graduate school applications and stay organized
+        </p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="section-card mb-5">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-tasks text-primary me-3"></i>
+                <h4 class="mb-0">Application Management</h4>
+            </div>
+            <div class="d-flex gap-3">
+                <a href="{{ url_for('main.application_flow') }}" class="btn btn-info">
+                    <i class="fas fa-project-diagram me-2"></i>View Flow
+                </a>
+                <a href="{{ url_for('main.new_application') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Application
+                </a>
+            </div>
         </div>
     </div>
 
     {% if applications %}
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>University</th>
-                    <th>Program</th>
-                    <th>Term</th>
-                    <th>Status</th>
-                    <th>Deadline</th>
-                    <th>Documents</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for app in applications %}
-                <tr>
-                    <td>{{ app.university }}</td>
-                    <td>{{ app.program }}</td>
-                    <td>{{ app.term }}</td>
-                    <td>
-                        {% if app.status == 'Accepted' %}
-                            <span class="badge bg-success">Accepted</span>
-                        {% elif app.status == 'Rejected' %}
-                            <span class="badge bg-danger">Rejected</span>
-                        {% elif app.status == 'Waitlisted' %}
-                            <span class="badge bg-warning">Waitlisted</span>
-                        {% elif app.status == 'Interview' %}
-                            <span class="badge bg-info">Interview</span>
-                        {% elif app.status == 'Applied' %}
-                            <span class="badge bg-primary">Applied</span>
-                        {% else %}
-                            <span class="badge bg-secondary">Planning</span>
+    <!-- Applications List -->
+    <div class="section-card">
+        <div class="section-header mb-4">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>Application Overview
+            </h5>
+        </div>
+        
+        <div class="row">
+            {% for app in applications %}
+            <div class="col-12 mb-4">
+                <div class="card application-card h-100">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="application-header mb-3">
+                                    <h5 class="card-title mb-2">{{ app.university }}</h5>
+                                    <p class="text-muted mb-2">
+                                        <i class="fas fa-graduation-cap me-2"></i>{{ app.program }}
+                                    </p>
+                                    <p class="text-muted mb-3">
+                                        <i class="fas fa-calendar me-2"></i>{{ app.term }}
+                                    </p>
+                                </div>
+                                
+                                <div class="application-details">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <div class="detail-item">
+                                                <label class="text-muted small">Status</label>
+                                                <div class="mt-1">
+                                                    {% if app.status == 'Accepted' %}
+                                                        <span class="badge bg-success">Accepted</span>
+                                                    {% elif app.status == 'Rejected' %}
+                                                        <span class="badge bg-danger">Rejected</span>
+                                                    {% elif app.status == 'Waitlisted' %}
+                                                        <span class="badge bg-warning text-dark">Waitlisted</span>
+                                                    {% elif app.status == 'Interview' %}
+                                                        <span class="badge bg-info">Interview</span>
+                                                    {% elif app.status == 'Applied' %}
+                                                        <span class="badge bg-primary">Applied</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Planning</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <div class="detail-item">
+                                                <label class="text-muted small">Deadline</label>
+                                                <div class="mt-1">
+                                                    {% if app.deadline %}
+                                                        <span class="text-primary fw-bold">
+                                                            {{ app.deadline.strftime('%B %d, %Y') }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="text-muted">No deadline set</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="documents-section mb-3">
+                                    <h6 class="text-muted mb-3">Documents</h6>
+                                    <div class="document-item mb-2">
+                                        <span class="document-label">Transcripts</span>
+                                        {% if app.transcripts_submitted %}
+                                            <i class="fas fa-check-circle text-success ms-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-times-circle text-danger ms-2"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="document-item mb-2">
+                                        <span class="document-label">SOP</span>
+                                        {% if app.sop_submitted %}
+                                            <i class="fas fa-check-circle text-success ms-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-times-circle text-danger ms-2"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="document-item mb-2">
+                                        <span class="document-label">Resume</span>
+                                        {% if app.resume_submitted %}
+                                            <i class="fas fa-check-circle text-success ms-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-times-circle text-danger ms-2"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="document-item">
+                                        <span class="document-label">LORs</span>
+                                        <span class="badge bg-secondary ms-2">{{ app.lors_submitted }}/3</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="actions-section">
+                                    <a href="{{ url_for('main.edit_application', id=app.id) }}" 
+                                       class="btn btn-primary w-100">
+                                        <i class="fas fa-edit me-2"></i>Edit
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if app.notes %}
+                        <div class="application-notes mt-3 pt-3 border-top">
+                            <h6 class="text-muted mb-2">
+                                <i class="fas fa-sticky-note me-2"></i>Notes
+                            </h6>
+                            <p class="text-muted mb-0">{{ app.notes }}</p>
+                        </div>
                         {% endif %}
-                    </td>
-                    <td>{{ app.deadline.strftime('%Y-%m-%d') if app.deadline }}</td>
-                    <td>
-                        <small>
-                            {% if app.transcripts_submitted %}<span class="text-success">✓</span>{% else %}<span class="text-danger">✗</span>{% endif %} Transcripts<br>
-                            {% if app.sop_submitted %}<span class="text-success">✓</span>{% else %}<span class="text-danger">✗</span>{% endif %} SOP<br>
-                            {% if app.resume_submitted %}<span class="text-success">✓</span>{% else %}<span class="text-danger">✗</span>{% endif %} Resume<br>
-                            LORs: {{ app.lors_submitted }}/3
-                        </small>
-                    </td>
-                    <td>
-                        <a href="{{ url_for('main.edit_application', id=app.id) }}" class="btn btn-sm btn-primary">Edit</a>
-                    </td>
-                </tr>
-                {% if app.notes %}
-                <tr>
-                    <td colspan="7" class="text-muted"><small>{{ app.notes }}</small></td>
-                </tr>
-                {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% else %}
-    <div class="text-center mt-5">
-        <p class="text-muted">No applications yet.</p>
-        <a href="{{ url_for('main.new_application') }}" class="btn btn-primary">Add Your First Application</a>
+    <!-- Empty State -->
+    <div class="section-card text-center">
+        <div class="empty-state">
+            <i class="fas fa-folder-open fa-3x text-muted mb-4"></i>
+            <h4 class="text-muted mb-3">No applications yet</h4>
+            <p class="text-muted mb-4">Start building your graduate school application portfolio</p>
+            <a href="{{ url_for('main.new_application') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>Add Your First Application
+            </a>
+        </div>
     </div>
     {% endif %}
 </div>

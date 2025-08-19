@@ -2,75 +2,202 @@
 
 {% block content %}
 <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Graduate Admission Results</h1>
+    <!-- Hero Section -->
+    <div class="hero-section text-center mb-4">
+        <h1 class="display-5 fw-bold mb-3">
+            <span class="text-gradient">Graduate Admission Results</span>
+        </h1>
+        <p class="lead text-muted mb-3">
+            Track and share graduate school admission outcomes
+        </p>
+        
         {% if current_user.is_authenticated %}
-        <a href="{{ url_for('main.new_admission_result') }}" class="btn btn-primary">Share Your Result</a>
+        <div class="hero-actions">
+            <a href="{{ url_for('main.new_admission_result') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>Share Your Result
+            </a>
+        </div>
         {% endif %}
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>University</th>
-                    <th>Program</th>
-                    <th>Decision</th>
-                    <th>Degree</th>
-                    <th>Term</th>
-                    <th>Notification Date</th>
-                    <th>Stats</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for result in results.items %}
-                <tr>
-                    <td>{{ result.university }}</td>
-                    <td>{{ result.program }}</td>
-                    <td>
-                        {% if result.decision == 'Accepted' %}
-                            <span class="badge bg-success">Accepted</span>
-                        {% elif result.decision == 'Rejected' %}
-                            <span class="badge bg-danger">Rejected</span>
-                        {% elif result.decision == 'Waitlisted' %}
-                            <span class="badge bg-warning">Waitlisted</span>
-                        {% else %}
-                            <span class="badge bg-info">{{ result.decision }}</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ result.degree_type }}</td>
-                    <td>{{ result.term }}</td>
-                    <td>{{ result.notification_date.strftime('%Y-%m-%d') }}</td>
-                    <td>
-                        {% if result.gpa %}GPA: {{ "%.2f"|format(result.gpa) }}{% endif %}
-                        {% if result.gre_quant %}
-                            <br>GRE: {{ result.gre_quant }}/{{ result.gre_verbal }}{% if result.gre_awa %}/{{ result.gre_awa }}{% endif %}
-                        {% endif %}
-                    </td>
-                </tr>
-                {% if result.comments %}
-                <tr>
-                    <td colspan="7" class="text-muted"><small>{{ result.comments }}</small></td>
-                </tr>
+    <!-- Results Section -->
+    <div class="section-card">
+        <div class="section-header mb-4">
+            <h5 class="mb-0">
+                <i class="fas fa-graduation-cap me-2"></i>Admission Results
+                {% if results.items %}
+                <span class="badge bg-primary ms-2">{{ results.items|length }}</span>
                 {% endif %}
+            </h5>
+        </div>
+        
+        {% if results.items %}
+            <div class="row">
+                {% for result in results.items %}
+                <div class="col-12 mb-4">
+                    <div class="card admission-result-card h-100">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="result-header mb-3">
+                                        <h5 class="card-title mb-2">{{ result.university }}</h5>
+                                        <p class="text-muted mb-2">
+                                            <i class="fas fa-graduation-cap me-2"></i>{{ result.program }}
+                                        </p>
+                                        <p class="text-muted mb-3">
+                                            <i class="fas fa-calendar me-2"></i>{{ result.term }}
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="result-details">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <div class="detail-item">
+                                                    <label class="text-muted small">Decision</label>
+                                                    <div class="mt-1">
+                                                        {% if result.decision == 'Accepted' %}
+                                                            <span class="badge bg-success">Accepted</span>
+                                                        {% elif result.decision == 'Rejected' %}
+                                                            <span class="badge bg-danger">Rejected</span>
+                                                        {% elif result.decision == 'Waitlisted' %}
+                                                            <span class="badge bg-warning text-dark">Waitlisted</span>
+                                                        {% else %}
+                                                            <span class="badge bg-info">{{ result.decision }}</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6 mb-3">
+                                                <div class="detail-item">
+                                                    <label class="text-muted small">Degree Type</label>
+                                                    <div class="mt-1">
+                                                        <span class="text-primary fw-bold">{{ result.degree_type }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if result.comments %}
+                                    <div class="result-comments mt-3 pt-3 border-top">
+                                        <h6 class="text-muted mb-2">
+                                            <i class="fas fa-comment me-2"></i>Comments
+                                        </h6>
+                                        <p class="text-muted mb-0">{{ result.comments }}</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="stats-section mb-3">
+                                        <h6 class="text-muted mb-3">Application Stats</h6>
+                                        
+                                        {% if result.gpa %}
+                                        <div class="stat-item mb-2">
+                                            <span class="stat-label">GPA</span>
+                                            <span class="stat-value text-success fw-bold">{{ "%.2f"|format(result.gpa) }}</span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if result.gre_quant %}
+                                        <div class="stat-item mb-2">
+                                            <span class="stat-label">GRE Quant</span>
+                                            <span class="stat-value text-info fw-bold">{{ result.gre_quant }}</span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if result.gre_verbal %}
+                                        <div class="stat-item mb-2">
+                                            <span class="stat-label">GRE Verbal</span>
+                                            <span class="stat-value text-info fw-bold">{{ result.gre_verbal }}</span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if result.gre_awa %}
+                                        <div class="stat-item">
+                                            <span class="stat-label">GRE AWA</span>
+                                            <span class="stat-value text-info fw-bold">{{ result.gre_awa }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="notification-info">
+                                        <div class="detail-item">
+                                            <label class="text-muted small">Notification Date</label>
+                                            <div class="mt-1">
+                                                <span class="text-primary fw-bold">
+                                                    {{ result.notification_date.strftime('%B %d, %Y') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+            
+            <!-- Enhanced Pagination -->
+            {% if results.pages > 1 %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if results.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.admissions', page=results.prev_num) }}">
+                            <i class="fas fa-chevron-left me-1"></i>Previous
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in results.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != results.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.admissions', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if results.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.admissions', page=results.next_num) }}">
+                            Next<i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state text-center py-5">
+                <i class="fas fa-graduation-cap fa-3x text-muted mb-4"></i>
+                <h4 class="text-muted mb-3">No admission results yet</h4>
+                <p class="text-muted mb-4">Be the first to share your graduate school admission outcome</p>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('main.new_admission_result') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Share Your First Result
+                </a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login to Share Results
+                </a>
+                {% endif %}
+            </div>
+        {% endif %}
     </div>
-
-    <nav aria-label="Page navigation" class="mt-4">
-        <ul class="pagination justify-content-center">
-            {% if results.has_prev %}
-            <li class="page-item">
-                <a class="page-link" href="{{ url_for('main.admissions', page=results.prev_num) }}">Previous</a>
-            </li>
-            {% endif %}
-            {% if results.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="{{ url_for('main.admissions', page=results.next_num) }}">Next</a>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
 </div>
 {% endblock %} 
